@@ -1,0 +1,46 @@
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: pipeline-ctn
+    ports:
+      - "8080:8080"
+    networks:
+      - dev-tools-network
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    environment:
+      - JENKINS_OPTS=--httpPort=8080
+
+  sonarqube:
+    image: sonarqube:latest
+    container_name: code-safety-ctn
+    ports:
+      - "9000:9000"
+    networks:
+      - dev-tools-network
+    environment:
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://pipeline-db-ctn:5432/sonarqube
+      - SONARQUBE_JDBC_USERNAME=sonarqube
+      - SONARQUBE_JDBC_PASSWORD=sonarpass
+
+  postgres:
+    image: postgres:latest
+    container_name: pipeline-db-ctn
+    ports:
+      - "5432:5432"
+    networks:
+      - dev-tools-network
+    environment:
+      POSTGRES_DB: sonarqube
+      POSTGRES_USER: sonarqube
+      POSTGRES_PASSWORD: sonarpass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+networks:
+  dev-tools-network:
+    external: true
+
+volumes:
+  jenkins_home:
+  postgres_data:
